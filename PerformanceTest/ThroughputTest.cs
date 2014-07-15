@@ -40,5 +40,22 @@ namespace PerformanceTest
             watch.Stop();
             return watch.Elapsed.TotalMilliseconds;
         }
+
+        public double SelectSystemTestAsync(int iterations, int opsInParallel)
+        {
+            var statement = new SimpleStatement("SELECT * FROM system.schema_columnfamilies");
+            var watch = Stopwatch.StartNew();
+            for (var i = 0; i < iterations; i++)
+            {
+                var taskList = new List<Task>(opsInParallel);
+                for (var j = 0; j < opsInParallel; j++)
+                {
+                    taskList.Add(_session.ExecuteAsync(statement));
+                }
+                Task.WaitAll(taskList.ToArray(), 60000);   
+            }
+            watch.Stop();
+            return watch.Elapsed.TotalMilliseconds;
+        }
     }
 }
